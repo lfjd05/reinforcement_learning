@@ -51,22 +51,22 @@ def get_env_feedback(S, A):
             R = 0
     else:
         # 向左移动
+        R = 0
         if S == 0:
             S_ = S   # 到达边界原地不动
         else:
             S_ = S -1
-        R = 0
     return S_, R
 
 
-# 创建环境
+# 创建环境，只负责显示，和算法本身无关
 def update_env(S, episode, step_counter):
     env = ['-']*(N_STATES-1)+['T']  # 搭建环境
     if S == 'terminal':
         interaction = 'Episode %s: total_steps= %s' % (episode+1, step_counter)
         print('\r{}'.format(interaction), end='')
         time.sleep(2)
-        print('\r      ', end='')    # 覆盖上一行的显示
+        print('\r         ', end='')    # 覆盖上一行的显示
     else:
         env[S] = '0'
         interaction = ''.join(env)
@@ -76,24 +76,28 @@ def update_env(S, episode, step_counter):
 
 def rl():
     """
-    和环境交互，得到新的q表
+        和环境交互，得到新的q表
+        Q(新) <- Q(旧)+alpha*
     :return:
     """
     table = build_q_table(N_STATES, ACTIONS)   # 创建表
     for episode in range(MAX_EPISODES):
         step_counter = 0
-        S = 0
+        S = 0     # 初始状态
         is_terminated = False
         update_env(S, episode, step_counter)  # 更新环境
         while not is_terminated:
-            A = choose_action(S, table)  # 选行为
+            A = choose_action(S, table)  # 选q值大的行为
             S_, R = get_env_feedback(S, A)  # 实施行为并得到环境的反馈
+
+            # 得到采取A后的预测q值
             q_predict = table.loc[S, A]  # 估算的(状态-行为)值
-            if S_ != 'terminal':
-                q_target = R + GAMMA * table.iloc[S_, :].max()  # 实际的(状态-行为)值 (回合没结束)
-            else:
+            if S_ == 'terminal':
                 q_target = R  # 实际的(状态-行为)值 (回合结束)
-                is_terminated = True  # terminate this episode
+                is_terminated = True  # 本场游戏终止
+            else:
+                # A动作后的真实Q值
+                q_target = R + GAMMA * table.iloc[S_, :].max()  # 实际的(状态-行为)值 (回合没结束)
 
             table.loc[S, A] += ALPHA * (q_target - q_predict)  # q_table 更新
             S = S_  # 探索者移动到下一个 state
@@ -102,6 +106,7 @@ def rl():
 
             step_counter += 1    # 花费步数
     return table
+
 
 if __name__ == "__main__":
     q_table = rl()
