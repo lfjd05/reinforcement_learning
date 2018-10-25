@@ -90,7 +90,7 @@ def rl():
             A = choose_action(S, table)  # 选q值大的行为
             S_, R = get_env_feedback(S, A)  # 实施行为并得到环境的反馈
 
-            # 得到采取A后的预测q值
+            # 原来Q表中记载的得到采取A后的q值
             q_predict = table.loc[S, A]  # 估算的(状态-行为)值
             if S_ == 'terminal':
                 q_target = R  # 实际的(状态-行为)值 (回合结束)

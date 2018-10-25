@@ -1,3 +1,6 @@
-action = {'A':[2, 3, 4], 'B':[1, 2]}
-print(action['A'])
-print([len(action[i]) for i in action])
+import numpy as np
+
+a = np.array([1, 2, 3])
+b = np.array([2])
+
+print(np.hstack((a, b)))
